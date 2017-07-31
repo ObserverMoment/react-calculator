@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import constants from './constants.js';
 import ScreenContainer from "./ScreenContainer.js";
 import ButtonContainer from "./ButtonContainer.js";
+import processInputFn from "./processInputFn.js";
 
 const AppHolder = styled.section`
   margin: 0 auto;
@@ -48,11 +49,27 @@ class App extends Component {
       // If a number is entered then history etc is wiped and the user starts again. But operators continue with that history.
       decimalUsed: false // You can only enter a decimal once.
     }
+    this.operatorLookup = {
+      "+": function(x,y) { return x + y; },
+      "-": function(x,y) { return x - y; },
+      "*": function(x,y) { return x * y; },
+      "/": function(x,y) { return x / y; }
+    }
   }
 
-  processInput = (input) => {
+  roundToMaxDigits = (floatInput) => {
+    return Number(Math.round(floatInput+'e'+'10')+'e-'+'10');
+  }
+
+  processInput = (event) => {
     // Deal with the input and update the state accordingly.
-    console.log(input);
+    var inputType = event.target.getAttribute('type');
+    var inputValue = event.target.value;
+    var currentState = this.state;
+    var roundFunction = this.roundToMaxDigits;
+    // Process the input with the input function module processInputFn().
+    processInputFn(inputType, inputValue, currentState, this.operatorLookup, roundFunction)
+    console.log(this.state, "After Processing");
   }
 
   render() {
@@ -60,7 +77,7 @@ class App extends Component {
       <AppHolder className="z-depth-2" >
         <Calculator className="z-depth-3">
           <Logo>JS CALC</Logo>
-          <ScreenContainer />
+          <ScreenContainer display={this.state.display} history={this.state.history}/>
           <ButtonContainer passInputs={this.processInput}/>
         </Calculator>
       </AppHolder>
