@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import constants from './constants.js';
 import ScreenContainer from "./ScreenContainer.js";
 import ButtonContainer from "./ButtonContainer.js";
-import processInputFn from "./processInputFn.js";
 
 const AppHolder = styled.section`
   margin: 0 auto;
@@ -65,12 +64,105 @@ class App extends Component {
     // Deal with the input and update the state accordingly.
     var inputType = event.target.getAttribute('type');
     var inputValue = event.target.value;
-    var currentState = this.state;
-    var roundFunction = this.roundToMaxDigits;
     // Process the input with the input function module processInputFn().
-    processInputFn(inputType, inputValue, currentState, this.operatorLookup, roundFunction)
-    console.log(this.state, "After Processing");
+    if (inputType === "number") {
+      this.processNumber(inputValue);
+    }
+    if (inputType === "operator") {
+      this.processOperator(inputValue);
+    }
+    if (inputType === "ac") {
+      this.processAC();
+    }
+    if (inputType === "ce") {
+      this.processCE();
+    }
+    if (inputType === "equals") {
+      this.processEquals();
+    }
+    console.log(this.state);
   }
+
+  processNumber(inputValue){
+    if (inputValue === "0" && this.state.display === "") {
+      // A zero cannot be entered before a digit 1 - 9.
+      return;
+    }
+    if (inputValue === ".") {
+      if (this.state.decimalUsed) {
+        // If input is a dot and a dot has already been used then break.
+        return;
+      }
+      if (this.state.awaitingInput) {
+        // Entering a dot before any other digits will automatically prepend a zero so that it makes sense.
+        inputValue = "0" + inputValue;
+      }
+
+      // If input is decimal, display is valid, and function is still running after decimal check...then set it to true.
+      this.setState({
+        decimalUsed: true
+      });
+    }
+
+    if (this.state.equalsIsActive) {
+      this.setState({
+        history: "",
+        accumulator: 0,
+        display: inputValue,
+        equalsIsActive: false
+      })
+
+    } else if (this.state.awaitingInput) {
+      this.setState({
+        display: inputValue,
+        awaitingInput: false
+      })
+
+    } else {
+      this.setState({
+        display: this.state.display + inputValue,
+      })
+    }
+  }
+
+  processOperator(inputValue){
+    // An operator should not be pressed before any other inputs.
+    if (this.state.display === "" || this.state.display === "0" || this.state.display === "0.") {
+      return;
+    }
+
+    if (!this.state.equalsIsActive) {
+      // Update the accumulator using the previous operator. So the users screen will show the most recent sum total.
+      // Add any value entered by the user before the pressed the operator to the history string.
+      this.setState({
+        accumulator: this.operatorLookup[this.state.activeOperator](this.state.accumulator, parseFloat(this.state.display)),
+        history: this.state.history + this.state.display
+      })
+    } else if (this.state.equalsIsActive) {
+      // However, now equals is no longer active as a new operator has been pressed.
+      this.setState({
+        equalsIsActive: false
+      })
+    }
+    // Update the display to show the operator.
+    // Set the activeOperator for the next calculation.
+    // Add the operator to the history string
+    // The customer will next be entering more numbers.
+    // You are now allowed to enter a decimal again for the next input.
+    this.setState({
+      display: inputValue,
+      activeOperator: inputValue,
+      history: this.state.history + inputValue,
+      awaitingInput: true,
+      decimalUsed: false
+    })
+  }
+
+  processAC(){}
+
+  processCE(){}
+
+  processEquals(){}
 
   render() {
     return (

@@ -23,7 +23,6 @@ const ScreenHolder = styled.div`
 
 class ScreenContainer extends Component {
   render() {
-    console.log(this.props.display);
     return (
       <ScreenHolder>
         <Display data={this.props.display}/>
