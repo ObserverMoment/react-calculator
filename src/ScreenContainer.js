@@ -9,7 +9,6 @@ const ScreenHolder = styled.div`
   width: 280px;
   height: 100px;
   background-color: #ececec;
-  border-radius: 10px;
   padding: 4px;
   box-shadow: inset 0px 1px 2px 1px rgba(0,0,0,0.6);
   text-align: right;

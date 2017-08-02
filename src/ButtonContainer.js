@@ -6,7 +6,6 @@ const ButtonHolder = styled.section`
   padding: 10px;
   display: flex;
   flex-wrap: wrap;
-  font-weight: bold;
 `
 
 const Button = styled.button`
@@ -15,12 +14,11 @@ const Button = styled.button`
   padding: 10px 0;
   margin: 5px;
   flex: 1 0 18%;
-  border-radius: 8px;
   background: ${
     (props) => (props.ac || props.ce) ? constants.CLEAR_BUTTON : constants.NUMBER_BUTTON
   };
   box-shadow: 0 4px 4px -1px rgb(42, 42, 42);
-  color: 'snow';
+  color: rgba(244, 242, 241, 0.9);
   :active {
     box-shadow: 0 1px 2px -1px rgb(42, 42, 42);
     background: ${

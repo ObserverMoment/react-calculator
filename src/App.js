@@ -15,13 +15,12 @@ const AppHolder = styled.section`
 const Calculator = styled.div`
   width: 300px;
   background: ${constants.CALC_BODY};
-  border-radius: 15px;
   border: 1px solid #bdbdbd;
   margin: auto;
 `;
 
 const Logo = styled.div`
-  font-family: 'Orbitron', sans-serif;
+  font-family: sans-serif;
   font-size: 15px;
   padding: 3px;
   color: black;
@@ -135,8 +134,7 @@ class App extends Component {
       // Update the accumulator using the previous operator. So the users screen will show the most recent sum total.
       // Add any value entered by the user before the pressed the operator to the history string.
       this.setState({
-        accumulator: this.operatorLookup[this.state.activeOperator](this.state.accumulator, parseFloat(this.state.display)),
-        history: this.state.history + this.state.display
+        accumulator: this.operatorLookup[this.state.activeOperator](this.state.accumulator, parseFloat(this.state.display))
       })
     } else if (this.state.equalsIsActive) {
       // However, now equals is no longer active as a new operator has been pressed.
@@ -152,17 +150,64 @@ class App extends Component {
     this.setState({
       display: inputValue,
       activeOperator: inputValue,
-      history: this.state.history + inputValue,
+      history: this.state.history + this.state.display + inputValue,
       awaitingInput: true,
       decimalUsed: false
     })
   }
 
-  processAC(){}
+  processAC(){
+    // All clear
+    this.setState({
+      display: "0",
+      history: "",
+      accumulator: 0,
+      awaitingInput: true,
+      decimalUsed: false
+    })
+  }
 
-  processCE(){}
+  processCE(){
+    // Clear entry
+    this.setState({
+      display: "0",
+      awaitingInput: true,
+      decimalUsed: false
+    })
+  }
 
-  processEquals(){}
+  processEquals(){
+    if (this.state.equalsIsActive) {
+      return;
+    }
+    // Just updates accumulator with the last operator and the live numbers on the display.
+    // Then displays the total on the screen.
+    this.setState({
+      equalsIsActive: true
+    })
+    if (this.state.awaitingInput) {
+      // This means the user has inputted an operator but not used it. Just discard it and return the current total.
+      this.setState({
+        display: this.roundToMaxDigits(this.state.accumulator)
+      })
+    } else {
+      // Add up the previous calcs. Update the history. Display the accumulated total. Set awaiting input to true.
+      this.setState({
+        history: this.state.history + this.state.display,
+        accumulator: this.operatorLookup[this.state.activeOperator](this.state.accumulator, parseFloat(this.state.display))
+      })
+      this.setState({
+        display: this.roundToMaxDigits(this.state.accumulator),
+        awaitingInput: true
+      })
+    }
+
+    // You are now allowed to enter a decimal again for the next input.
+    this.setState({
+      decimalUsed: false
+    })
+
+  }
 
   render() {
     return (
