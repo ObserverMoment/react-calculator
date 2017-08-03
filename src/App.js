@@ -83,64 +83,67 @@ class App extends Component {
   }
 
   processNumber(inputValue){
-    if (inputValue === "0" && this.state.display === "") {
-      // A zero cannot be entered before a digit 1 - 9.
+    const { display, history, decimalUsed, awaitingInput, equalsIsActive } = this.state;
+
+    // Deal with "." input.
+    if (inputValue === ".") {
+      // If input is a dot and a dot has already been used then break.
+      if (decimalUsed) { return; }
+      // Entering a dot before any other digits will automatically prepend a zero so that it makes sense.
+      if (awaitingInput) { inputValue = "0."; }
+      // If function is still running after decimal check...then set decimalUsed to true.
+      this.setState({
+        decimalUsed: true,
+        display: inputValue,
+        history: history + inputValue
+      });
       return;
     }
-    if (inputValue === ".") {
-      if (this.state.decimalUsed) {
-        // If input is a dot and a dot has already been used then break.
-        return;
-      }
-      if (this.state.awaitingInput) {
-        // Entering a dot before any other digits will automatically prepend a zero so that it makes sense.
-        inputValue = "0" + inputValue;
-      }
 
-      // If input is decimal, display is valid, and function is still running after decimal check...then set it to true.
-      this.setState({
-        decimalUsed: true
-      });
-    }
-
-    if (this.state.equalsIsActive) {
+    // After an equals input you just reset everything and add the input to the display. Then set equalsIsActive to false.
+    if (equalsIsActive) {
       this.setState({
         history: "",
         accumulator: 0,
         display: inputValue,
         equalsIsActive: false
       })
-
-    } else if (this.state.awaitingInput) {
+    } else if (awaitingInput) {
+    // This is the first input after an operator so you can set the display to the new input.
       this.setState({
+        awaitingInput: false,
         display: inputValue,
-        awaitingInput: false
-      })
-
+        history: history + inputValue
+      });
     } else {
+      // Append the input value to the display and history for processing later.
       this.setState({
-        display: this.state.display + inputValue,
-      })
+        display: display + inputValue,
+        history: history + inputValue
+      });
     }
   }
 
   processOperator(inputValue){
-    // An operator should not be pressed before any other inputs.
-    if (this.state.display === "" || this.state.display === "0" || this.state.display === "0.") {
-      return;
-    }
+    const { display, equalsIsActive, activeOperator, accumulator, history, awaitingInput } = this.state;
 
-    if (!this.state.equalsIsActive) {
+    // An operator should not be pressed before any other inputs.
+    if (display === "" || display === "0" || display === "0.") { return; }
+
+    // If an operator has already been pressed then you need to replace it with the new one.
+    if (awaitingInput) {
+      // TODO 
+    };
+
+    if (!equalsIsActive) {
       // Update the accumulator using the previous operator. So the users screen will show the most recent sum total.
       // Add any value entered by the user before the pressed the operator to the history string.
       this.setState({
-        accumulator: this.operatorLookup[this.state.activeOperator](this.state.accumulator, parseFloat(this.state.display))
+        accumulator: this.operatorLookup[activeOperator](accumulator, parseFloat(display))
       })
-    } else if (this.state.equalsIsActive) {
+    } else if (equalsIsActive) {
       // However, now equals is no longer active as a new operator has been pressed.
-      this.setState({
-        equalsIsActive: false
-      })
+      this.setState({ equalsIsActive: false });
     }
     // Update the display to show the operator.
     // Set the activeOperator for the next calculation.
@@ -148,9 +151,8 @@ class App extends Component {
     // The customer will next be entering more numbers.
     // You are now allowed to enter a decimal again for the next input.
     this.setState({
-      display: inputValue,
       activeOperator: inputValue,
-      history: this.state.history + this.state.display + inputValue,
+      history: history + inputValue,
       awaitingInput: true,
       decimalUsed: false
     })
@@ -177,44 +179,36 @@ class App extends Component {
   }
 
   processEquals(){
-    if (this.state.equalsIsActive) {
-      return;
-    }
-    // Just updates accumulator with the last operator and the live numbers on the display.
+    const { awaitingInput, accumulator, history, display, activeOperator } = this.state;
+    // Pressing equals twice should do nothing.
+    // if (equalsIsActive) { return; }
+
+    // Update accumulator with the last operator and the live numbers on the display.
     // Then displays the total on the screen.
-    this.setState({
-      equalsIsActive: true
-    })
-    if (this.state.awaitingInput) {
-      // This means the user has inputted an operator but not used it. Just discard it and return the current total.
-      this.setState({
-        display: this.roundToMaxDigits(this.state.accumulator)
-      })
+    this.setState({ equalsIsActive: true });
+    if (awaitingInput) {
+      // This means the user has previously inputted an operator but not used it. Just discard it and return the current total.
+      this.setState({ display: this.roundToMaxDigits(accumulator) });
     } else {
       // Add up the previous calcs. Update the history. Display the accumulated total. Set awaiting input to true.
+      let updatedAccumulator = this.operatorLookup[activeOperator](accumulator, parseFloat(display));
+
       this.setState({
-        history: this.state.history + this.state.display,
-        accumulator: this.operatorLookup[this.state.activeOperator](this.state.accumulator, parseFloat(this.state.display))
-      })
-      this.setState({
-        display: this.roundToMaxDigits(this.state.accumulator),
-        awaitingInput: true
-      })
+        accumulator: updatedAccumulator,
+        display: this.roundToMaxDigits(updatedAccumulator),
+        awaitingInput: true,
+        decimalUsed: false
+      });
     }
-
-    // You are now allowed to enter a decimal again for the next input.
-    this.setState({
-      decimalUsed: false
-    })
-
   }
 
   render() {
+    const { display, history } = this.state;
     return (
       <AppHolder className="z-depth-2" >
         <Calculator className="z-depth-3">
           <Logo>JS CALC</Logo>
-          <ScreenContainer display={this.state.display} history={this.state.history}/>
+          <ScreenContainer display={display} history={history}/>
           <ButtonContainer passInputs={this.processInput}/>
         </Calculator>
       </AppHolder>

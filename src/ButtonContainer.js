@@ -52,7 +52,7 @@ class ButtonContainer extends Component {
         <Button onClick={this.props.passInputs} value="1" type="number" number>1</Button>
         <Button onClick={this.props.passInputs} value="2" type="number" number>2</Button>
         <Button onClick={this.props.passInputs} value="3" type="number" number>3</Button>
-        <Button onClick={this.props.passInputs} value="." type="operator" operator>.</Button>
+        <Button onClick={this.props.passInputs} value="." type="number" operator>.</Button>
         <Button onClick={this.props.passInputs} value="0" type="number" number>0</Button>
         <Button onClick={this.props.passInputs} value="=" type="equals" equals>=</Button>
       </ButtonHolder>
