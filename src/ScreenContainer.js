@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
-import Display from "./Display";
-import History from "./History";
 
 const ScreenHolder = styled.div`
   margin: 0 auto;
@@ -15,6 +13,15 @@ const ScreenHolder = styled.div`
   padding: 8px 8px;
 `;
 
+const Display = styled.div`
+  font-size: 32px;
+`
+
+const History = styled.div`
+  font-size: 12px;
+  color: #5c5c5c;
+`
+
 // Notes on data.
 /*
   The screen container will pass only visual data to Display and History. Via state properties state.display and state.history.
@@ -22,10 +29,11 @@ const ScreenHolder = styled.div`
 
 class ScreenContainer extends Component {
   render() {
+    const { display, history } = this.props;
     return (
       <ScreenHolder>
-        <Display data={this.props.display}/>
-        <History data={this.props.history}/>
+        <Display>{display || 0}</Display>
+        <History>{history || 0}</History>
       </ScreenHolder>
     )
   }

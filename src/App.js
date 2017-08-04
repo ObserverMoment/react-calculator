@@ -41,11 +41,13 @@ class App extends Component {
       display: "",
       history: "",
       accumulator: 0,
-      activeOperator: "+",
+      activeOperator: "",
       awaitingInput: true,
       equalsIsActive: false, // Operation is different when the equals has been pressed.
       // If a number is entered then history etc is wiped and the user starts again. But operators continue with that history.
-      decimalUsed: false // You can only enter a decimal once.
+      decimalUsed: false, // You can only enter a decimal once.
+      displayMaxLen: 12,
+
     }
     this.operatorLookup = {
       "+": function(x,y) { return x + y; },
@@ -83,7 +85,10 @@ class App extends Component {
   }
 
   processNumber(inputValue){
-    const { display, history, decimalUsed, awaitingInput, equalsIsActive } = this.state;
+    const { display, history, decimalUsed, awaitingInput, equalsIsActive, displayMaxLen } = this.state;
+    // Deal with reaching max digits on screen. Just jump out of function.
+    // If you are awaiting input then the next step will reset the screen so you do not need to stop here.
+    if (display.length > displayMaxLen && !awaitingInput) { return; }
 
     // Deal with "." input.
     if (inputValue === ".") {
@@ -94,8 +99,9 @@ class App extends Component {
       // If function is still running after decimal check...then set decimalUsed to true.
       this.setState({
         decimalUsed: true,
-        display: inputValue,
-        history: history + inputValue
+        display: display + inputValue,
+        history: history + inputValue,
+        awaitingInput: false
       });
       return;
     }
@@ -127,20 +133,27 @@ class App extends Component {
   processOperator(inputValue){
     const { display, equalsIsActive, activeOperator, accumulator, history, awaitingInput } = this.state;
 
+    // If an operator has already been pressed then you need to replace it with the new one.
+    if (awaitingInput) { return; };
+
     // An operator should not be pressed before any other inputs.
     if (display === "" || display === "0" || display === "0.") { return; }
-
-    // If an operator has already been pressed then you need to replace it with the new one.
-    if (awaitingInput) {
-      // TODO 
-    };
 
     if (!equalsIsActive) {
       // Update the accumulator using the previous operator. So the users screen will show the most recent sum total.
       // Add any value entered by the user before the pressed the operator to the history string.
-      this.setState({
-        accumulator: this.operatorLookup[activeOperator](accumulator, parseFloat(display))
-      })
+      console.log(parseFloat(display));
+      console.log(this.operatorLookup[activeOperator]);
+      console.log(accumulator);
+      if (activeOperator) {
+        this.setState({
+          accumulator: this.operatorLookup[activeOperator](accumulator, parseFloat(display))
+        });
+      } else {
+        this.setState({
+          accumulator: parseFloat(display)
+        });
+      }
     } else if (equalsIsActive) {
       // However, now equals is no longer active as a new operator has been pressed.
       this.setState({ equalsIsActive: false });
@@ -149,7 +162,6 @@ class App extends Component {
     // Set the activeOperator for the next calculation.
     // Add the operator to the history string
     // The customer will next be entering more numbers.
-    // You are now allowed to enter a decimal again for the next input.
     this.setState({
       activeOperator: inputValue,
       history: history + inputValue,
@@ -165,7 +177,8 @@ class App extends Component {
       history: "",
       accumulator: 0,
       awaitingInput: true,
-      decimalUsed: false
+      decimalUsed: false,
+
     })
   }
 
@@ -179,9 +192,9 @@ class App extends Component {
   }
 
   processEquals(){
-    const { awaitingInput, accumulator, history, display, activeOperator } = this.state;
+    const { awaitingInput, accumulator, display, activeOperator, history, equalsIsActive } = this.state;
     // Pressing equals twice should do nothing.
-    // if (equalsIsActive) { return; }
+    if (equalsIsActive) { return; }
 
     // Update accumulator with the last operator and the live numbers on the display.
     // Then displays the total on the screen.
@@ -205,7 +218,7 @@ class App extends Component {
   render() {
     const { display, history } = this.state;
     return (
-      <AppHolder className="z-depth-2" >
+      <AppHolder>
         <Calculator className="z-depth-3">
           <Logo>JS CALC</Logo>
           <ScreenContainer display={display} history={history}/>
